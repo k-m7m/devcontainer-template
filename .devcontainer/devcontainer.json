@@ -1,19 +1,21 @@
 {
   "name": "parallel-dev",
-  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+  "build": { "dockerfile": "Dockerfile" },
   "features": {
+    // 作業ユーザー dev を作る（sudo, zsh, curl なども入る）
+    "ghcr.io/devcontainers/features/common-utils:2": { "username": "dev" },
     // 相対パスの worktree には git 2.48 以上が必要
     "ghcr.io/devcontainers/features/git:1": { "version": "latest" },
     "ghcr.io/devcontainers/features/node:1": {},
     "ghcr.io/anthropics/devcontainer-features/claude-code:1": {}
   },
-  "remoteUser": "vscode",
+  "remoteUser": "dev",
   "containerEnv": {
-    "CLAUDE_CONFIG_DIR": "/home/vscode/.claude"
+    "CLAUDE_CONFIG_DIR": "/home/dev/.claude"
   },
   "mounts": [
     // 認証情報と履歴はコンテナの作り直し後も残す（全プロジェクト共通）
-    "source=claude-code-config,target=/home/vscode/.claude,type=volume"
+    "source=claude-code-config,target=/home/dev/.claude,type=volume"
   ],
   // ホストの Claude 設定のうち必要なものだけを volume にコピーする。
   // - docker を直接呼ぶので OS を問わない（配列形式なのでシェルを通らない）
@@ -28,6 +30,6 @@
     "cd /h/.claude 2>/dev/null || exit 0; for f in CLAUDE.md settings.json commands skills agents; do [ -e \"$f\" ] || continue; rm -rf \"/dst/$f\"; cp -RL \"$f\" /dst/ || true; done"
   ],
   "postCreateCommand": "sudo git config --system worktree.useRelativePaths true && mkdir -p .worktrees",
-  // Linux ホストでは vscode の UID がホストに合わせて変わるので、毎回ここで所有者をそろえる
-  "postStartCommand": "sudo chown -R vscode:vscode /home/vscode/.claude"
+  // Linux ホストでは dev の UID がホストに合わせて変わるので、毎回ここで所有者をそろえる
+  "postStartCommand": "sudo chown -R dev:dev /home/dev/.claude"
 }
